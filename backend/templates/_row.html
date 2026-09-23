@@ -1,0 +1,6 @@
+<tr>
+  <td>{{ row.lot }}</td>
+  <td>{{ row.score }}</td>
+  <td class="{% if row.verdict == '通过' %}pass{% else %}fail{% endif %}">{{ row.verdict }}</td>
+  <td>{{ row.note }}</td>
+</tr>

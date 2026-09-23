@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block body %}
+<form method="post" action="{{ url_for('login') }}">
+  <h1>登录</h1>
+  <p>审评员给一批拼配打香气、滋味、汤色，服务端按权重出分。这不是菜谱。</p>
+  {% if error %}<p>{{ error }}</p>{% endif %}
+  <input name="username" value="taster" />
+  <input name="password" type="password" value="tea123456" />
+  <button>登录</button>
+  <p>taster / tea123456 可审评；observer / look123456 只看</p>
+</form>
+{% endblock %}
