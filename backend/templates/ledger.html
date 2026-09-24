@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block main_class %}wide{% endblock %}
+{% block body %}
+<h1>日账折点专页</h1>
+<div class="ledger-layout">
+  <section class="ledger-live">
+    <h2>现场日账</h2>
+    <form class="filter-bar" method="get" action="{{ url_for('ledger') }}">
+      <label>结论筛选
+        <select name="verdict">
+          <option value="all" {% if filter_key == 'all' %}selected{% endif %}>全部</option>
+          <option value="pass" {% if filter_key == 'pass' %}selected{% endif %}>只看通过</option>
+          <option value="fail" {% if filter_key == 'fail' %}selected{% endif %}>只看不通过</option>
+        </select>
+      </label>
+      <button>应用</button>
+    </form>
+
+    {% if chart %}
+    <div class="chart">
+      <svg viewBox="0 0 560 160" width="100%" height="160" role="img" aria-label="日账折点图">
+        <polyline points="{{ chart.pass.line }}" fill="none" stroke="#166534" stroke-width="2" />
+        <polyline points="{{ chart.fail.line }}" fill="none" stroke="#9f1239" stroke-width="2" />
+        {% for p in chart.pass.dots %}
+        <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" fill="#166534"><title>{{ p.day }} 通过 {{ p.count }}</title></circle>
+        {% endfor %}
+        {% for p in chart.fail.dots %}
+        <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" fill="#9f1239"><title>{{ p.day }} 不通过 {{ p.count }}</title></circle>
+        {% endfor %}
+      </svg>
+      <span class="pass">● 通过</span>　<span class="fail">● 不通过</span>
+    </div>
+    {% endif %}
+
+    <table>
+      <thead>
+        <tr><th>日期</th><th>通过</th><th>不通过</th>{% if can_write %}<th>快照</th>{% endif %}</tr>
+      </thead>
+      <tbody>
+        {% for day in days %}
+        <tr>
+          <td>{{ day.day }}</td>
+          <td class="pass">{{ day.pass_count }}</td>
+          <td class="fail">{{ day.fail_count }}</td>
+          {% if can_write %}
+          <td>
+            {% if day.signed %}
+              已签发
+            {% else %}
+            <form class="inline" method="post" action="{{ url_for('sign_snapshot') }}">
+              <input type="hidden" name="day" value="{{ day.day }}" />
+              <button>签发快照</button>
+            </form>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>明细（{% if filter_key == 'pass' %}只看通过{% elif filter_key == 'fail' %}只看不通过{% else %}全部{% endif %}）</h3>
+    <table>
+      <thead>
+        <tr><th>编号</th><th>批次</th><th>加权分</th><th>结论</th><th>说明</th><th>时间</th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ row.id }}</td>
+          <td>{{ row.lot }}</td>
+          <td>{{ row.score }}</td>
+          <td class="{% if row.verdict == '通过' %}pass{% else %}fail{% endif %}">{{ row.verdict }}</td>
+          <td>{{ row.note }}</td>
+          <td>{{ row.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <aside class="ledger-snaps">
+    <h2>已签发快照</h2>
+    {% for snap in snapshots %}
+    <div class="snapshot-card">
+      <h3>{{ snap.day }}</h3>
+      <p><span class="pass">通过 {{ snap.pass_count }}</span> · <span class="fail">不通过 {{ snap.fail_count }}</span></p>
+      <p>通过编号：<span class="ids">{% if snap.pass_ids %}{{ snap.pass_ids | join(', ') }}{% else %}（无）{% endif %}</span></p>
+      <p>不通过编号：<span class="ids">{% if snap.fail_ids %}{{ snap.fail_ids | join(', ') }}{% else %}（无）{% endif %}</span></p>
+      <p><small>{{ snap.signed_by }} 签发于 {{ snap.signed_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
+    </div>
+    {% else %}
+    <p>尚未签发任何快照。</p>
+    {% endfor %}
+  </aside>
+</div>
+{% endblock %}

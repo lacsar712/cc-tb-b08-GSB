@@ -5,24 +5,40 @@
   <title>茶叶拼配审评台</title>
   <style>
     body { font-family: "Palatino Linotype", serif; background: #f6f1e7; color: #3f2e22; margin: 0; }
-    header { background: #6b3e26; color: #fff; padding: 12px 20px; display: flex; gap: 16px; }
+    header { background: #6b3e26; color: #fff; padding: 12px 20px; display: flex; gap: 16px; align-items: center; }
     header a { color: #f6e7c1; }
+    header nav { display: flex; gap: 12px; }
     main { max-width: 820px; margin: 20px auto; }
+    main.wide { max-width: 1120px; }
     table { width: 100%; background: #fffaf3; border-collapse: collapse; }
     td, th { padding: 8px; border-bottom: 1px solid #e6d3c0; text-align: left; }
     form { background: #fffaf3; padding: 12px; margin-bottom: 16px; }
+    form.inline { display: inline; background: none; padding: 0; margin: 0; }
     .pass { color: #166534; } .fail { color: #9f1239; }
+    .ledger-layout { display: flex; gap: 24px; align-items: flex-start; }
+    .ledger-live { flex: 1 1 640px; min-width: 0; }
+    .ledger-snaps { flex: 0 0 320px; }
+    .filter-bar { display: flex; gap: 10px; align-items: center; }
+    .chart { background: #fffaf3; padding: 12px; margin-bottom: 16px; }
+    .snapshot-card { background: #fffaf3; border: 1px solid #e6d3c0; border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+    .snapshot-card h3 { margin: 0 0 6px; }
+    .snapshot-card p { margin: 4px 0; }
+    .ids { font-family: monospace; }
   </style>
 </head>
 <body>
   <header>
     <strong>茶叶拼配审评台</strong>
     {% if session.user %}
+      <nav>
+        <a href="{{ url_for('home') }}">审评台</a>
+        <a href="{{ url_for('ledger') }}">日账折点</a>
+      </nav>
       <span>{{ session.user }}</span>
       <a href="{{ url_for('logout') }}">退出</a>
     {% endif %}
   </header>
-  <main>{% block body %}{% endblock %}</main>
+  <main class="{% block main_class %}{% endblock %}">{% block body %}{% endblock %}</main>
   <script>
     document.addEventListener("submit", async (event) => {
       const form = event.target;
