@@ -30,7 +30,26 @@ def main():
             score double precision NOT NULL,
             verdict text NOT NULL,
             note text NOT NULL,
-            created_by text NOT NULL
+            created_by text NOT NULL,
+            created_at timestamptz NOT NULL DEFAULT now()
+        )"""
+    )
+    # 老库补列：自然日归属按 created_at 折算
+    cur.execute(
+        """ALTER TABLE cuppings
+           ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now()"""
+    )
+    # 审评员签发的某日快照：计数与命中编号集合在签发瞬间冻结
+    cur.execute(
+        """CREATE TABLE IF NOT EXISTS daily_snapshots (
+            id serial PRIMARY KEY,
+            day date NOT NULL UNIQUE,
+            pass_count integer NOT NULL,
+            fail_count integer NOT NULL,
+            pass_ids integer[] NOT NULL,
+            fail_ids integer[] NOT NULL,
+            signed_by text NOT NULL,
+            signed_at timestamptz NOT NULL DEFAULT now()
         )"""
     )
     cur.execute("SELECT COUNT(*) FROM cuppings")

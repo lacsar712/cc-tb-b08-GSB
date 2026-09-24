@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>折点日账</h1>
+<p>按自然日（东八区）汇总通过与不通过条数及命中编号。筛选由服务端计算，不是浏览器藏行。</p>
+
+<div class="filters">
+  <a class="{% if flt == 'all' %}on{% endif %}" href="{{ url_for('ledger', verdict='all') }}">全部</a>
+  <a class="{% if flt == 'pass' %}on{% endif %}" href="{{ url_for('ledger', verdict='pass') }}">只看通过</a>
+  <a class="{% if flt == 'fail' %}on{% endif %}" href="{{ url_for('ledger', verdict='fail') }}">只看不通过</a>
+</div>
+
+<div class="panels">
+  <section class="panel">
+    <h2>现场日账</h2>
+    {% if can_write %}
+    <form method="post" action="{{ url_for('sign_snapshot') }}" style="padding:8px 12px;">
+      <input type="hidden" name="day" value="{{ today }}" />
+      <button {% if today in signed_days %}disabled{% endif %}>
+        签发今日（{{ today }}）快照
+      </button>
+      {% if today in signed_days %}<span>今日快照已签发，现场继续变动不影响它</span>{% endif %}
+    </form>
+    {% endif %}
+    <table>
+      <thead>
+        <tr>
+          <th>日期</th>
+          {% if flt != 'fail' %}<th>通过数</th><th>通过编号</th>{% endif %}
+          {% if flt != 'pass' %}<th>不通过数</th><th>不通过编号</th>{% endif %}
+          {% if can_write %}<th>签发</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in days %}
+        <tr>
+          <td>{{ d.day }}</td>
+          {% if flt != 'fail' %}<td class="pass">{{ d.pass_count }}</td><td class="ids">{{ d.pass_ids | join(', ') }}</td>{% endif %}
+          {% if flt != 'pass' %}<td class="fail">{{ d.fail_count }}</td><td class="ids">{{ d.fail_ids | join(', ') }}</td>{% endif %}
+          {% if can_write %}
+          <td>
+            {% if d.day in signed_days %}已冻结
+            {% else %}
+            <form method="post" action="{{ url_for('sign_snapshot') }}" style="padding:0;margin:0;background:none;">
+              <input type="hidden" name="day" value="{{ d.day }}" />
+              <button>签发此日</button>
+            </form>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="6">当日无记录</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel frozen">
+    <h2>已签发快照</h2>
+    <p>快照与现场日账并排、互不覆盖；签发后再交评只改现场，快照数字与编号集合不动，现场筛选也不改快照。</p>
+    <table>
+      <thead>
+        <tr><th>日期</th><th>通过数</th><th>不通过数</th><th>通过编号</th><th>不通过编号</th><th>签发人/时间</th></tr>
+      </thead>
+      <tbody>
+        {% for s in snapshots %}
+        <tr>
+          <td>{{ s.day }}</td>
+          <td class="pass">{{ s.pass_count }}</td>
+          <td class="fail">{{ s.fail_count }}</td>
+          <td class="ids">{{ s.pass_ids | join(', ') }}</td>
+          <td class="ids">{{ s.fail_ids | join(', ') }}</td>
+          <td>{{ s.signed_by }}<br>{{ s.signed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">尚无快照</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

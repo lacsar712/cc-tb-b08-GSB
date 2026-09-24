@@ -12,12 +12,22 @@
     td, th { padding: 8px; border-bottom: 1px solid #e6d3c0; text-align: left; }
     form { background: #fffaf3; padding: 12px; margin-bottom: 16px; }
     .pass { color: #166534; } .fail { color: #9f1239; }
+    .filters { display: flex; gap: 8px; margin-bottom: 12px; }
+    .filters a { padding: 4px 12px; background: #e6d3c0; border-radius: 14px; text-decoration: none; color: #3f2e22; }
+    .filters a.on { background: #6b3e26; color: #f6e7c1; }
+    .panels { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    .panel { flex: 1 1 380px; }
+    .panel h2 { font-size: 1.1rem; }
+    .frozen { border-left: 4px solid #6b3e26; padding-left: 10px; }
+    .ids { font-family: monospace; font-size: 0.85rem; }
   </style>
 </head>
 <body>
   <header>
     <strong>茶叶拼配审评台</strong>
     {% if session.user %}
+      <a href="{{ url_for('home') }}">审评台</a>
+      <a href="{{ url_for('ledger') }}">日账折点</a>
       <span>{{ session.user }}</span>
       <a href="{{ url_for('logout') }}">退出</a>
     {% endif %}
